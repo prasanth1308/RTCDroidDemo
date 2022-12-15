@@ -6,9 +6,13 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
 import android.os.Bundle;
+
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.util.DisplayMetrics;
@@ -79,24 +83,16 @@ public class CallActivity extends AppCompatActivity {
 
     private SurfaceTextureHelper mSurfaceTextureHelper;
 
-//    private SurfaceViewRenderer mLocalSurfaceView;
-//    private SurfaceViewRenderer mRemoteSurfaceView;
-
     private VideoSource mVideoSource;
-
-    private AudioTrack mAudioTrack;
-    private VideoTrack mVideoTrack;
 
     private VideoCapturer mVideoCapturer;
     private MediaStream mLocalMediaStream;
-
-    private ScreenCapturerAndroid mScreenCapturerAndroid;
 
     private static final int CAPTURE_PERMISSION_REQUEST_CODE = 1;
     private static Intent mMediaProjectionPermissionResultData;
     private static int mMediaProjectionPermissionResultCode;
 
-    public static String STREAM_NAME_PREFIX = "android_device_stream";
+    private TextView roomNameTextView;
 
     public static int sDeviceWidth;
     public static int sDeviceHeight;
@@ -109,6 +105,20 @@ public class CallActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_call);
+        getWindow().getDecorView().setBackgroundColor(Color.parseColor("#6c6b75"));
+
+        // Define ActionBar object
+        ActionBar actionBar;
+        actionBar = getSupportActionBar();
+
+        // Define ColorDrawable object and parse color
+        // using parseColor method
+        // with color hash code as its parameter
+        ColorDrawable colorDrawable
+                = new ColorDrawable(Color.parseColor("#14437b"));
+
+        // Set BackgroundDrawable
+        actionBar.setBackgroundDrawable(colorDrawable);
 
         getWindow().addFlags(
                 WindowManager.LayoutParams.FLAG_FULLSCREEN
@@ -125,64 +135,27 @@ public class CallActivity extends AppCompatActivity {
         mStartCallBtn = findViewById(R.id.StartCallButton);
         mEndCallBtn = findViewById(R.id.EndCallButton);
 
-        // RTCSignalClient.getInstance().setSignalEventListener(mOnSignalEventListener);
-
         WebRTCSignalClient.getInstance().setSignalEventListener(mOnSignalEventListener);
 
         serverAddr = getIntent().getStringExtra("ServerAddr");
         roomName = getIntent().getStringExtra("RoomName");
-        // RTCSignalClient.getInstance().joinRoom(serverAddr, UUID.randomUUID().toString(), roomName);
+
+        roomNameTextView = (TextView) findViewById(R.id.RoomName);
+        roomNameTextView.setText("Device Id: " + roomName);
 
         WebRTCSignalClient.getInstance().joinRoom(serverAddr, UUID.randomUUID().toString(), roomName);
 
         mRootEglBase = EglBase.create();
-
-//        mLocalSurfaceView = findViewById(R.id.LocalSurfaceView);
-//        mRemoteSurfaceView = findViewById(R.id.RemoteSurfaceView);
-//
-//        mLocalSurfaceView.init(mRootEglBase.getEglBaseContext(), null);
-//        mLocalSurfaceView.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FILL);
-//        mLocalSurfaceView.setMirror(true);
-//        mLocalSurfaceView.setEnableHardwareScaler(false /* enabled */);
-//
-//        mRemoteSurfaceView.init(mRootEglBase.getEglBaseContext(), null);
-//        mRemoteSurfaceView.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FILL);
-//        mRemoteSurfaceView.setMirror(true);
-//        mRemoteSurfaceView.setEnableHardwareScaler(true /* enabled */);
-//        mRemoteSurfaceView.setZOrderMediaOverlay(true);
-//
-//        ProxyVideoSink videoSink = new ProxyVideoSink();
-//        videoSink.setTarget(mLocalSurfaceView);
 
         mPeerConnectionFactory = createPeerConnectionFactory(this);
 
         // NOTE: this _must_ happen while PeerConnectionFactory is alive!
         Logging.enableLogToDebugOutput(Logging.Severity.LS_VERBOSE);
 
-//        mVideoCapturer = createVideoCapturer();
-//
-//        mSurfaceTextureHelper = SurfaceTextureHelper.create("CaptureThread", mRootEglBase.getEglBaseContext());
-//        VideoSource videoSource = mPeerConnectionFactory.createVideoSource(true);
-//        mVideoCapturer.initialize(mSurfaceTextureHelper, getApplicationContext(), videoSource.getCapturerObserver());
-//
-//        mVideoTrack = mPeerConnectionFactory.createVideoTrack(VIDEO_TRACK_ID, videoSource);
-//        mVideoTrack.setEnabled(true);
-//        mVideoTrack.addSink(videoSink);
-//
-//        AudioSource audioSource = mPeerConnectionFactory.createAudioSource(new MediaConstraints());
-//        mAudioTrack = mPeerConnectionFactory.createAudioTrack(AUDIO_TRACK_ID, audioSource);
-//        mAudioTrack.setEnabled(false);
-
         mPeerConnectionFactory.setVideoHwAccelerationOptions(mRootEglBase.getEglBaseContext(), mRootEglBase.getEglBaseContext());
         startScreenCapture();
     }
 
-    public void initPeerConnection() {
-        // create notification
-//        Pair<Integer, Notification> notification = NotificationUtils.getNotification(this);
-//        startForeground(notification.first, notification.second);
-//        mVideoCapturer = createScreenCapturer();
-    }
 
     @TargetApi(21)
     private void startScreenCapture() {
@@ -218,48 +191,21 @@ public class CallActivity extends AppCompatActivity {
 
         mMediaProjectionPermissionResultCode = resultCode;
         mMediaProjectionPermissionResultData = data;
-        // init();
-        // initPeerConnection();\
-        Log.i(TAG, "onActivityResult" + requestCode);
-
-        Log.i(TAG, "onActivityResult" + resultCode);
-
-        Log.i(TAG, "onActivityResult" + data);
 
         if (resultCode == Activity.RESULT_OK) {
-            Log.i(TAG, "startService");
             startService(ScreenCaptureService.getStartIntent(getApplicationContext(), resultCode, data));
         }
 
     }
 
-//    @Override
-//    protected void onResume() {
-//        super.onResume();
-//        mVideoCapturer.startCapture(VIDEO_RESOLUTION_WIDTH, VIDEO_RESOLUTION_HEIGHT, VIDEO_FPS);
-//    }
-//
-//    @Override
-//    protected void onPause() {
-//        super.onPause();
-//        try {
-//            mVideoCapturer.stopCapture();
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
-//    }
-
     @Override
     protected void onDestroy() {
         super.onDestroy();
         doEndCall();
-//        mLocalSurfaceView.release();
-//        mRemoteSurfaceView.release();
         mVideoCapturer.dispose();
         mSurfaceTextureHelper.dispose();
         PeerConnectionFactory.stopInternalTracingCapture();
         PeerConnectionFactory.shutdownInternalTracer();
-//        RTCSignalClient.getInstance().leaveRoom();
         WebRTCSignalClient.getInstance().leaveRoom();
     }
 
@@ -315,11 +261,9 @@ public class CallActivity extends AppCompatActivity {
                 if (idle) {
                     mStartCallBtn.setVisibility(View.VISIBLE);
                     mEndCallBtn.setVisibility(View.GONE);
-                    // mRemoteSurfaceView.setVisibility(View.GONE);
                 } else {
                     mStartCallBtn.setVisibility(View.GONE);
                     mEndCallBtn.setVisibility(View.VISIBLE);
-                    // mRemoteSurfaceView.setVisibility(View.VISIBLE);
                 }
             }
         });
@@ -327,7 +271,6 @@ public class CallActivity extends AppCompatActivity {
 
     public void doStartCall() {
         logcatOnUI("Start Call, Wait ...");
-        // mVideoCapturer = createScreenCapturer();
         mVideoCapturer = createScreenCapturer();
         mLocalMediaStream = mPeerConnectionFactory.createLocalMediaStream("ARDAMS");
         MediaConstraints mediaConstraints = new MediaConstraints();
@@ -338,21 +281,18 @@ public class CallActivity extends AppCompatActivity {
         mediaConstraints.mandatory.add(new MediaConstraints.KeyValuePair("maxHeight", Integer.toString(sDeviceHeight / SCREEN_RESOLUTION_SCALE)));
         mediaConstraints.mandatory.add(new MediaConstraints.KeyValuePair("maxWidth", Integer.toString(sDeviceWidth / SCREEN_RESOLUTION_SCALE)));
         mediaConstraints.mandatory.add(new MediaConstraints.KeyValuePair("maxFrameRate", Integer.toString(45)));
-        mediaConstraints.mandatory.add(new MediaConstraints.KeyValuePair("minFrameRate", Integer.toString(30)));
+        mediaConstraints.mandatory.add(new MediaConstraints.KeyValuePair("minFrameRate", Integer.toString(20)));
 
         mSurfaceTextureHelper = SurfaceTextureHelper.create("CaptureThread", mRootEglBase.getEglBaseContext());
         Log.i(TAG, "mVideoCapturer " + mVideoCapturer);
         mVideoSource = mPeerConnectionFactory.createVideoSource(mVideoCapturer);
         mVideoCapturer.isScreencast();
-        mVideoCapturer.startCapture(sDeviceWidth, sDeviceHeight, 45);
+        mVideoCapturer.startCapture(sDeviceWidth, sDeviceHeight, 30);
         VideoTrack localVideoTrack = mPeerConnectionFactory.createVideoTrack(VIDEO_TRACK_ID, mVideoSource);
         localVideoTrack.setEnabled(true);
         mLocalMediaStream.addTrack(mPeerConnectionFactory.createVideoTrack(VIDEO_TRACK_ID, mVideoSource));
         AudioSource audioSource = mPeerConnectionFactory.createAudioSource(new MediaConstraints());
         mLocalMediaStream.addTrack(mPeerConnectionFactory.createAudioTrack(AUDIO_TRACK_ID, audioSource));
-
-        mVideoTrack = mPeerConnectionFactory.createVideoTrack(VIDEO_TRACK_ID, mVideoSource);
-
 
         if (mPeerConnection == null) {
             mPeerConnection = createPeerConnection();
@@ -388,12 +328,14 @@ public class CallActivity extends AppCompatActivity {
 
     public void doEndCall() {
         logcatOnUI("End Call, Wait ...");
-        hanup();
-        JSONObject message = new JSONObject();
+        JSONObject requestMessage = new JSONObject();
+        JSONObject data = new JSONObject();
         try {
-            message.put("userId", WebRTCSignalClient.getInstance().getUserId());
-            message.put("msgType", WebRTCSignalClient.MESSAGE_TYPE_HANGUP);
-            WebRTCSignalClient.getInstance().sendMessage(message);
+            data.put("deviceId", roomName);
+            requestMessage.put("type", "LEAVE_CHANNEL");
+            requestMessage.put("data", data);
+            WebRTCSignalClient.getInstance().sendMessage(requestMessage);
+            hangUp();
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -413,10 +355,6 @@ public class CallActivity extends AppCompatActivity {
                 mPeerConnection.setLocalDescription(new SimpleSdpObserver(), sessionDescription);
                 JSONObject message = new JSONObject();
                 try {
-//                    message.put("userId", RTCSignalClient.getInstance().getUserId());
-//                    message.put("msgType", RTCSignalClient.MESSAGE_TYPE_ANSWER);
-//                    message.put("sdp", sessionDescription.description);
-//                    RTCSignalClient.getInstance().sendMessage(message);
                     message.put("userId", WebRTCSignalClient.getInstance().getUserId());
                     message.put("msgType", WebRTCSignalClient.MESSAGE_TYPE_ANSWER);
                     message.put("sdp", sessionDescription.description);
@@ -426,10 +364,10 @@ public class CallActivity extends AppCompatActivity {
                 }
             }
         }, sdpMediaConstraints);
-        //updateCallState(false);
+        updateCallState(false);
     }
 
-    private void hanup() {
+    private void hangUp() {
         logcatOnUI("Hanup Call, Wait ...");
         startService(com.tamemm.remoteaccess.demo.activity.ScreenCaptureService.getStopIntent(this));
         if (mPeerConnection == null) {
@@ -438,7 +376,7 @@ public class CallActivity extends AppCompatActivity {
         mPeerConnection.close();
         mPeerConnection = null;
         logcatOnUI("Hanup Done.");
-        //updateCallState(true);
+        updateCallState(true);
     }
 
     public PeerConnection createPeerConnection() {
@@ -461,7 +399,6 @@ public class CallActivity extends AppCompatActivity {
 //         connection.addTrack(mAudioTrack);
         Log.i(TAG, "connection.addStream(mLocalMediaStream);" + connection);
         connection.addStream(mLocalMediaStream);
-        // connection.addTrack(mVideoTrack);
         return connection;
     }
 
@@ -483,47 +420,6 @@ public class CallActivity extends AppCompatActivity {
         builder.setOptions(null);
 
         return builder.createPeerConnectionFactory();
-    }
-
-    /*
-     * Read more about Camera2 here
-     * https://developer.android.com/reference/android/hardware/camera2/package-summary.html
-     **/
-    private VideoCapturer createVideoCapturer() {
-        if (Camera2Enumerator.isSupported(this)) {
-            return createCameraCapturer(new Camera2Enumerator(this));
-        } else {
-            return createCameraCapturer(new Camera1Enumerator(true));
-        }
-    }
-
-    private VideoCapturer createCameraCapturer(CameraEnumerator enumerator) {
-        final String[] deviceNames = enumerator.getDeviceNames();
-
-        // First, try to find front facing camera
-        Log.d(TAG, "Looking for front facing cameras.");
-        for (String deviceName : deviceNames) {
-            if (enumerator.isFrontFacing(deviceName)) {
-                Logging.d(TAG, "Creating front facing camera capturer.");
-                VideoCapturer videoCapturer = enumerator.createCapturer(deviceName, null);
-                if (videoCapturer != null) {
-                    return videoCapturer;
-                }
-            }
-        }
-
-        // Front facing camera not found, try something else
-        Log.d(TAG, "Looking for other cameras.");
-        for (String deviceName : deviceNames) {
-            if (!enumerator.isFrontFacing(deviceName)) {
-                Logging.d(TAG, "Creating other camera capturer.");
-                VideoCapturer videoCapturer = enumerator.createCapturer(deviceName, null);
-                if (videoCapturer != null) {
-                    return videoCapturer;
-                }
-            }
-        }
-        return null;
     }
 
     private PeerConnection.Observer mPeerConnectionObserver = new PeerConnection.Observer() {
@@ -715,7 +611,7 @@ public class CallActivity extends AppCompatActivity {
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-            //updateCallState(false);
+            updateCallState(false);
         }
 
         private void onRemoteCandidateReceived(String userId, JSONObject message) {
@@ -732,7 +628,7 @@ public class CallActivity extends AppCompatActivity {
 
         private void onRemoteHangup(String userId) {
             logcatOnUI("Receive Remote Hanup Event ...");
-            hanup();
+            hangUp();
         }
     };
 }

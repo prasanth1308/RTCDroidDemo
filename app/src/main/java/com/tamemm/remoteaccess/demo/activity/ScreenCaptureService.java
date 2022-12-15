@@ -35,17 +35,11 @@ public class ScreenCaptureService extends Service {
     private static final String STOP = "STOP";
     private static final String SCREENCAP_NAME = "screencap";
 
-    private static int IMAGES_PRODUCED;
 
     private MediaProjection mMediaProjection;
     private String mStoreDir;
-    private ImageReader mImageReader;
     private Handler mHandler;
     private Display mDisplay;
-    private VirtualDisplay mVirtualDisplay;
-    private int mDensity;
-    private int mWidth;
-    private int mHeight;
     private int mRotation;
     private OrientationChangeCallback mOrientationChangeCallback;
 
@@ -73,55 +67,6 @@ public class ScreenCaptureService extends Service {
         return intent.hasExtra(ACTION) && Objects.equals(intent.getStringExtra(ACTION), STOP);
     }
 
-    private static int getVirtualDisplayFlags() {
-        return DisplayManager.VIRTUAL_DISPLAY_FLAG_OWN_CONTENT_ONLY | DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC;
-    }
-
-//    private class ImageAvailableListener implements ImageReader.OnImageAvailableListener {
-//        @Override
-//        public void onImageAvailable(ImageReader reader) {
-//
-//            FileOutputStream fos = null;
-//            Bitmap bitmap = null;
-//            try (Image image = mImageReader.acquireLatestImage()) {
-//                if (image != null) {
-//                    Image.Plane[] planes = image.getPlanes();
-//                    ByteBuffer buffer = planes[0].getBuffer();
-//                    int pixelStride = planes[0].getPixelStride();
-//                    int rowStride = planes[0].getRowStride();
-//                    int rowPadding = rowStride - pixelStride * mWidth;
-//
-//                    // create bitmap
-//                    bitmap = Bitmap.createBitmap(mWidth + rowPadding / pixelStride, mHeight, Bitmap.Config.ARGB_8888);
-//                    bitmap.copyPixelsFromBuffer(buffer);
-//
-//                    // write bitmap to a file
-//                    fos = new FileOutputStream(mStoreDir + "/myscreen_" + IMAGES_PRODUCED + ".png");
-//                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
-//
-//                    IMAGES_PRODUCED++;
-//                    Log.e(TAG, "captured image: " + IMAGES_PRODUCED);
-//                }
-//
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//            } finally {
-//                if (fos != null) {
-//                    try {
-//                        fos.close();
-//                    } catch (IOException ioe) {
-//                        ioe.printStackTrace();
-//                    }
-//                }
-//
-//                if (bitmap != null) {
-//                    bitmap.recycle();
-//                }
-//
-//            }
-//        }
-//    }
-
     private class OrientationChangeCallback extends OrientationEventListener {
 
         OrientationChangeCallback(Context context) {
@@ -134,12 +79,7 @@ public class ScreenCaptureService extends Service {
             if (rotation != mRotation) {
                 mRotation = rotation;
                 try {
-                    // clean up
-                    if (mVirtualDisplay != null) mVirtualDisplay.release();
-                    if (mImageReader != null) mImageReader.setOnImageAvailableListener(null, null);
-
                     // re-create virtual display depending on device width / height
-                    // createVirtualDisplay();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -154,8 +94,6 @@ public class ScreenCaptureService extends Service {
             mHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    if (mVirtualDisplay != null) mVirtualDisplay.release();
-                    // if (mImageReader != null) mImageReader.setOnImageAvailableListener(null, null);
                     if (mOrientationChangeCallback != null) mOrientationChangeCallback.disable();
                     mMediaProjection.unregisterCallback(MediaProjectionStopCallback.this);
                 }
@@ -232,12 +170,8 @@ public class ScreenCaptureService extends Service {
             mMediaProjection = mpManager.getMediaProjection(resultCode, data);
             if (mMediaProjection != null) {
                 // display metrics
-                mDensity = Resources.getSystem().getDisplayMetrics().densityDpi;
                 WindowManager windowManager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
                 mDisplay = windowManager.getDefaultDisplay();
-
-                // create virtual display depending on device width / height
-                // createVirtualDisplay();
 
                 // register orientation change callback
                 mOrientationChangeCallback = new OrientationChangeCallback(this);
