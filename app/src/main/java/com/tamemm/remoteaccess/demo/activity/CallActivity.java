@@ -281,7 +281,7 @@ public class CallActivity extends AppCompatActivity {
         mediaConstraints.mandatory.add(new MediaConstraints.KeyValuePair("maxHeight", Integer.toString(sDeviceHeight / SCREEN_RESOLUTION_SCALE)));
         mediaConstraints.mandatory.add(new MediaConstraints.KeyValuePair("maxWidth", Integer.toString(sDeviceWidth / SCREEN_RESOLUTION_SCALE)));
         mediaConstraints.mandatory.add(new MediaConstraints.KeyValuePair("maxFrameRate", Integer.toString(45)));
-        mediaConstraints.mandatory.add(new MediaConstraints.KeyValuePair("minFrameRate", Integer.toString(20)));
+        mediaConstraints.mandatory.add(new MediaConstraints.KeyValuePair("minFrameRate", Integer.toString(30)));
 
         mSurfaceTextureHelper = SurfaceTextureHelper.create("CaptureThread", mRootEglBase.getEglBaseContext());
         Log.i(TAG, "mVideoCapturer " + mVideoCapturer);
