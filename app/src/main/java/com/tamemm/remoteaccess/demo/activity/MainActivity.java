@@ -18,13 +18,18 @@ import java.util.Random;
 
 import pub.devrel.easypermissions.EasyPermissions;
 
+import com.microsoft.appcenter.AppCenter;
+import com.microsoft.appcenter.analytics.Analytics;
+import com.microsoft.appcenter.crashes.Crashes;
+
 public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        AppCenter.start(getApplication(), "da3a1e9e-8f13-49d8-b113-e71865bc779d",
+                Analytics.class, Crashes.class);
         // Define ActionBar object
         ActionBar actionBar;
         actionBar = getSupportActionBar();
@@ -42,22 +47,8 @@ public class MainActivity extends AppCompatActivity {
         final EditText roomEditText = findViewById(R.id.RoomEditText);
 
         String ServerAddress = serverEditText.getText().toString();
-        // String RoomName = getRandomNumberString();
-        String RoomName = LoadPreferences("RoomName");
 
-//        findViewById(R.id.JoinRoomBtn).setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                String addr = serverEditText.getText().toString();
-//                String roomName = roomEditText.getText().toString();
-//                if (!"".equals(roomName)) {
-//                    Intent intent = new Intent(MainActivity.this, CallActivity.class);
-//                    intent.putExtra("ServerAddr", addr);
-//                    intent.putExtra("RoomName", roomName);
-//                    startActivity(intent);
-//                }
-//            }
-//        });
+        String RoomName = LoadPreferences("RoomName");
 
         if (!"".equals(RoomName)) {
             Intent intent = new Intent(MainActivity.this, CallActivity.class);
