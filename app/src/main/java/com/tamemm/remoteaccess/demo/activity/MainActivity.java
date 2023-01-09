@@ -6,14 +6,17 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
-
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.enterprise.feedback.KeyedAppState;
+import androidx.enterprise.feedback.KeyedAppStatesReporter;
 
 import android.widget.EditText;
 
 import com.tamemm.remoteaccess.demo.R;
 
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Random;
 
 import pub.devrel.easypermissions.EasyPermissions;
@@ -22,7 +25,11 @@ import com.microsoft.appcenter.AppCenter;
 import com.microsoft.appcenter.analytics.Analytics;
 import com.microsoft.appcenter.crashes.Crashes;
 
+
+
 public class MainActivity extends AppCompatActivity {
+
+    KeyedAppStatesReporter reporter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +50,8 @@ public class MainActivity extends AppCompatActivity {
         // Set BackgroundDrawable
         actionBar.setBackgroundDrawable(colorDrawable);
 
+        reporter = KeyedAppStatesReporter.create(this);
+
         final EditText serverEditText = findViewById(R.id.ServerEditText);
         final EditText roomEditText = findViewById(R.id.RoomEditText);
 
@@ -58,6 +67,7 @@ public class MainActivity extends AppCompatActivity {
         } else {
             String RoomNameNew = getRandomNumberString();
             SavePreferences("RoomName", RoomNameNew);
+            SentKeyedAppState(RoomNameNew);
             Intent intent = new Intent(MainActivity.this, CallActivity.class);
             intent.putExtra("ServerAddr", ServerAddress);
             intent.putExtra("RoomName", RoomNameNew);
@@ -93,6 +103,17 @@ public class MainActivity extends AppCompatActivity {
         return String.format("%06d", number);
     }
 
+    private void SentKeyedAppState(String roomId) {
+        Collection states = new HashSet<>();
+        states.add(KeyedAppState.builder()
+                .setKey("key")
+                .setSeverity(KeyedAppState.SEVERITY_INFO)
+                .setMessage("roomId")
+                .setData(roomId)
+                .build());
+        reporter.setStatesImmediate(states);
+    }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -103,4 +124,5 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
     }
+
 }
