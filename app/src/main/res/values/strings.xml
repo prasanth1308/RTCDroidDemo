@@ -1,15 +1,13 @@
 <resources>
-    <string name="app_name">Remote Assist</string>
+    <string name="app_name">TAM Remote Access</string>
     <string name="join_room">Join</string>
     <string name="room_tips">Input room name: </string>
     <string name="server_tips">Input server addr: </string>
-    <!--    <string name="default_server">http://rtc-signal.jhuster.com:8080/socket.io/</string>-->
-    <!--    <string name="default_server">http://192.168.0.103:8080/socket.io/</string>-->
+<!--    <string name="default_server">http://rtc-signal.jhuster.com:8080/socket.io/</string>-->
+<!--    <string name="default_server">http://192.168.0.103:8080/socket.io/</string>-->
     <string name="default_server">wss://webrtc-signal-server.herokuapp.com</string>
-    <!--    <string name="default_server">ws://10.40.130.74:4000</string>-->
+<!--    <string name="default_server">ws://10.40.130.74:4000</string>-->
     <string name="recording">Recording</string>
     <string name="appCenterKey">da3a1e9e-8f13-49d8-b113-e71865bc779d</string>
-    <string name="appwidget_text">EXAMPLE</string>
-    <string name="add_widget">Add widget</string>
-    <string name="app_widget_description">This is an app widget description</string>
+
 </resources>
