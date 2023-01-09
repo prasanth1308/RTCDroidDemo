@@ -291,8 +291,8 @@ public class CallActivity extends AppCompatActivity {
         VideoTrack localVideoTrack = mPeerConnectionFactory.createVideoTrack(VIDEO_TRACK_ID, mVideoSource);
         localVideoTrack.setEnabled(true);
         mLocalMediaStream.addTrack(mPeerConnectionFactory.createVideoTrack(VIDEO_TRACK_ID, mVideoSource));
-        AudioSource audioSource = mPeerConnectionFactory.createAudioSource(new MediaConstraints());
-        mLocalMediaStream.addTrack(mPeerConnectionFactory.createAudioTrack(AUDIO_TRACK_ID, audioSource));
+//        AudioSource audioSource = mPeerConnectionFactory.createAudioSource(new MediaConstraints());
+//        mLocalMediaStream.addTrack(mPeerConnectionFactory.createAudioTrack(AUDIO_TRACK_ID, audioSource));
 
         if (mPeerConnection == null) {
             mPeerConnection = createPeerConnection();
